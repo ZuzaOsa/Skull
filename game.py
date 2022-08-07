@@ -4,7 +4,6 @@ board = [] #cards on the table
 hand = []
 points = []
 active = [] #does player still have cards
-bets = []
 roundEnd = 0
 highestBet = 0
 
@@ -13,19 +12,31 @@ for i in range(0, players):
     points.append(0)
     hand.append([0, 0, 0, 1])
     active.append(1)
-    bets.append(0)
 
 def returnCards(player):
+    global board
     for i in board[player]:
         hand[player].append(i)
     board[player] = []
 
 def show(player, rosesNum):
     print("Player number " + str(player + 1) + " show " + str(rosesNum) + " roses!")
+    if 1 in board[player]:
+        returnCards(player)
+        choice = input("Which card you want to lose? ")
+        if choice == "S":
+            hand[player].remove(1)
+        else:
+            hand[player].remove(0)
+    else:
+        rosesNum -= len(board[player])
 
 def licitation(player):
+    global highestBet
     print("Licitation started")
     bets = []
+    for i in range(0, players):
+        bets.append(0)
     highestBet = 0
     bets[player] = makeBet(player)
     while bets[player] == -1:
@@ -35,7 +46,7 @@ def licitation(player):
         if active[i % players] == 0:
             bets.append(-1)
             continue
-        bets[i % player] = makeBet(i % players)
+        bets[i % players] = makeBet(i % players)
     while bets.count(-1) < players - 1:
         if bets[player] != -1:
             bets[player] = makeBet(player)
@@ -43,6 +54,7 @@ def licitation(player):
     show(bets.index(highestBet), highestBet)
 
 def makeBet(player):
+    global highestBet
     bet = int(input("Declaration od player number " + str(player + 1) + ": "))
     if bet == -1:
         return -1
@@ -54,7 +66,6 @@ def makeBet(player):
         return bet
 
 def makeMove(player):
-    print(board)
     move = input("Move of player number " + str(player + 1) + ": ")
     if move == "R":
         if 0 in hand[player]:
@@ -82,9 +93,8 @@ def makeMove(player):
         makeMove(player)
 
 
-
-
 def newRound():
+    global roundEnd
     roundEnd = 0
     a = 0
     for i in range(0, players):
