@@ -62,7 +62,7 @@ def show(player, rosesNum):
                     board[move].pop()
                 else:
                     print("It's a skull, you lose a card")
-                    rnd = randint(0, len(hand[player] - 1))
+                    rnd = randint(0, len(hand[player]) - 1)
                     if hand[player][rnd] == 0:
                         print("You lose a rose")
                     else:
@@ -70,7 +70,7 @@ def show(player, rosesNum):
                     hand[player].pop(rnd)
                     return
         points[player] += 1
-        print("Congratulations, you scored a point")
+        print("Congratulations, you scored a point!")
         print(points)          
 
 def licitation(player):
@@ -81,8 +81,6 @@ def licitation(player):
         bets.append(0)
     highestBet = 0
     bets[player] = makeBet(player)
-    print(player)
-    print(bets)
     while bets[player] < 1:
         print("You started licitation, bet at least 1 rose")
         bets[player] = makeBet(player)
@@ -147,6 +145,7 @@ def newRound():
         returnCards(i)
     while roundEnd == 0:
         if active[a] == 0:
+            a = (a + 1) % players
             continue
         makeMove(a)
         a = (a + 1) % players
