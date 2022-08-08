@@ -9,6 +9,7 @@ active = [] #does player still have cards
 roundEnd = 0
 highestBet = 0
 movingPlayer = 0
+cardsNum = 0
 
 for i in range(0, players):
     board.append([])
@@ -75,7 +76,6 @@ def show(player, rosesNum):
 
 def licitation(player):
     global highestBet
-    print("Licitation started")
     bets = []
     for i in range(0, players):
         bets.append(0)
@@ -97,22 +97,29 @@ def licitation(player):
 
 def makeBet(player):
     global highestBet
+    global cardsNum
+    print(cardsNum)
     bet = int(input("Declaration of player number " + str(player + 1) + ": "))
     if bet == -1:
         return -1
     elif bet <= highestBet:
         print("You need to say at least " + str(highestBet + 1) + " or pass")
         return makeBet(player)
+    elif bet > cardsNum:
+        print("You can't licitate more roses than cards on the table")
+        return makeBet(player)
     else:
         highestBet = bet
         return bet
 
 def makeMove(player):
+    global cardsNum
     move = input("Move of player number " + str(player + 1) + ": ")
     if move == "R":
         if 0 in hand[player]:
             hand[player].remove(0)
             board[player].append(0)
+            cardsNum += 1
         else:
             print("You do not have a rose")
             makeMove(player)
@@ -120,6 +127,7 @@ def makeMove(player):
         if 1 in hand[player]:
             hand[player].remove(1)
             board[player].append(1)
+            cardsNum += 1
         else:
             print("You do not have a skull")
             makeMove(player)
@@ -139,7 +147,9 @@ def makeMove(player):
 def newRound():
     print("New round starts")
     global roundEnd
+    global cardsNum
     roundEnd = 0
+    cardsNum = 0
     a = movingPlayer
     for i in range(0, players):
         returnCards(i)
