@@ -2,6 +2,9 @@ from random import randint
 
 players = int(input("Number of players: "))
 
+while players < 2:
+    players = int(input("There has to be at least two players: "))
+
 board = [] #cards on the table
 hand = []
 points = []
@@ -76,6 +79,7 @@ def show(player, rosesNum):
 
 def licitation(player):
     global highestBet
+    global cardsNum
     bets = []
     for i in range(0, players):
         bets.append(0)
@@ -84,21 +88,29 @@ def licitation(player):
     while bets[player] < 1:
         print("You started licitation, bet at least 1 rose")
         bets[player] = makeBet(player)
+    if highestBet == cardsNum:
+        show(player, cardsNum)
+        return
     for i in range(player + 1, players + player):
         if active[i % players] == 0:
             bets.append(-1)
             continue
         bets[i % players] = makeBet(i % players)
+        if highestBet == cardsNum:
+            show(i % players, cardsNum)
+            return
     while bets.count(-1) < players - 1:
         if bets[player] != -1:
             bets[player] = makeBet(player)
+            if highestBet == cardsNum:
+                show(player, cardsNum)
+                return
         player = (player + 1) % players
     show(bets.index(highestBet), highestBet)
 
 def makeBet(player):
     global highestBet
     global cardsNum
-    print(cardsNum)
     bet = int(input("Declaration of player number " + str(player + 1) + ": "))
     if bet == -1:
         return -1
@@ -151,8 +163,6 @@ def newRound():
     roundEnd = 0
     cardsNum = 0
     a = movingPlayer
-    for i in range(0, players):
-        returnCards(i)
     while roundEnd == 0:
         if active[a] == 0:
             a = (a + 1) % players
@@ -166,6 +176,7 @@ winner = -1
 while winner == -1:
     newRound()
     for i in range(0, players):
+        returnCards(i)
         if len(hand[i]) == 0:
             active[i] = 0
     if 2 in points:
