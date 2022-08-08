@@ -1,3 +1,5 @@
+from random import randint
+
 players = int(input("Number of players: "))
 
 board = [] #cards on the table
@@ -6,6 +8,7 @@ points = []
 active = [] #does player still have cards
 roundEnd = 0
 highestBet = 0
+movingPlayer = 0
 
 for i in range(0, players):
     board.append([])
@@ -19,17 +22,50 @@ def returnCards(player):
         hand[player].append(i)
     board[player] = []
 
+def displayBoard():
+    print("Number of cards")
+    for i in range(0, players):
+        print("Player number " + str(i + 1) + " has " + str(len(board[i])))
+
 def show(player, rosesNum):
+    global movingPlayer
+    movingPlayer = player
     print("Player number " + str(player + 1) + " show " + str(rosesNum) + " roses!")
     if 1 in board[player]:
         returnCards(player)
-        choice = input("Which card you want to lose? ")
+        choice = input("You have a skull, which card you want to lose?")
         if choice == "S":
             hand[player].remove(1)
         else:
             hand[player].remove(0)
     else:
         rosesNum -= len(board[player])
+        returnCards(player)
+        if rosesNum > 0:
+            print("You need to reveal " + str(rosesNum) + " roses")
+            displayBoard()
+        while rosesNum > 0:
+            move = int(input("Chose card to reveal: ")) - 1
+            if len(board[move]) == 0:
+                print("This player does not have unrevealed cards")
+            else:
+                if board[move][-1] == 0:
+                    print("It's a rose")
+                    rosesNum -= 1
+                    hand[move].append(board[move][-1])
+                    board[move].pop()
+                else:
+                    print("It's a skull, you lose a card")
+                    rnd = randint(0, len(hand[player] - 1))
+                    if hand[player][rnd] == 0:
+                        print("You lose a rose")
+                    else:
+                        print("You lose a skull")
+                    hand[player].pop(rnd)
+                    return
+        points[player] += 1
+        print("Congratulations, you scored a point")
+        print(points)          
 
 def licitation(player):
     global highestBet
@@ -39,7 +75,9 @@ def licitation(player):
         bets.append(0)
     highestBet = 0
     bets[player] = makeBet(player)
-    while bets[player] == -1:
+    print(player)
+    print(bets)
+    while bets[player] < 1:
         print("You started licitation, bet at least 1 rose")
         bets[player] = makeBet(player)
     for i in range(player + 1, players + player):
@@ -55,12 +93,12 @@ def licitation(player):
 
 def makeBet(player):
     global highestBet
-    bet = int(input("Declaration od player number " + str(player + 1) + ": "))
+    bet = int(input("Declaration of player number " + str(player + 1) + ": "))
     if bet == -1:
         return -1
     elif bet <= highestBet:
         print("You need to say at least " + str(highestBet + 1) + " or pass")
-        makeBet(player)
+        return makeBet(player)
     else:
         highestBet = bet
         return bet
@@ -86,6 +124,7 @@ def makeMove(player):
             print("Put a card first")
             makeMove(player)
         else:
+            global roundEnd
             roundEnd = 1
             licitation(player)
     else:
@@ -94,9 +133,10 @@ def makeMove(player):
 
 
 def newRound():
+    print("New round starts")
     global roundEnd
     roundEnd = 0
-    a = 0
+    a = movingPlayer
     for i in range(0, players):
         returnCards(i)
     while roundEnd == 0:
@@ -110,3 +150,12 @@ winner = -1
 
 while winner == -1:
     newRound()
+    for i in range(0, players):
+        if len(hand[i]) == 0:
+            active[i] = 0
+    if 2 in points:
+        winner = points.index(2)
+    if active.count(1) == 1:
+        winner = active.index(1)
+
+print("The winner is player number " + str(winner + 1))
