@@ -33,7 +33,13 @@ def show(player, rosesNum):
     print("Player number " + str(player + 1) + " show " + str(rosesNum) + " roses!")
     if 1 in board[player]:
         returnCards(player)
+        if len(hand[player]) == 1:
+            print("You lose a skull")
+            hand[player].pop()
+            return
         choice = input("You have a skull, which card you want to lose?")
+        while choice != "S" and choice != "R":
+            choice = input("You have to chose rose or skull: ")
         if choice == "S":
             hand[player].remove(1)
         else:
@@ -52,7 +58,7 @@ def show(player, rosesNum):
                 if board[move][-1] == 0:
                     print("It's a rose")
                     rosesNum -= 1
-                    hand[move].append(board[move][-1])
+                    hand[move].append(0)
                     board[move].pop()
                 else:
                     print("It's a skull, you lose a card")
