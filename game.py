@@ -1,9 +1,14 @@
-from random import randint
+import random
 
 players = int(input("Number of players: "))
 
 while players < 2:
     players = int(input("There has to be at least two players: "))
+
+playersAI = int(input("Number of AI players: "))
+
+while playersAI < 0 or playersAI > players:
+    playersAI = int(input("Number of AI players must be between 0 and " + str(players) + ": "))
 
 board = [] #cards on the table
 hand = []
@@ -41,7 +46,12 @@ def show(player, rosesNum):
             print("You lose a skull")
             hand[player].pop()
             return
-        choice = input("You have a skull, which card you want to lose?")
+        if (player < playersAI):
+            legal = ["R", "S"]
+            choice = random.choice(legal)
+            print("You have a skull, which card you want to lose? " + choice)
+        else: 
+            choice = input("You have a skull, which card you want to lose? ")
         while choice != "S" and choice != "R":
             choice = input("You have to chose rose or skull: ")
         if choice == "S":
@@ -55,7 +65,15 @@ def show(player, rosesNum):
             print("You need to reveal " + str(rosesNum) + " roses")
             displayBoard()
         while rosesNum > 0:
-            move = int(input("Chose card to reveal: ")) - 1
+            if player < playersAI:
+                legal = []
+                for i in range(0, players):
+                    if len(board[i]) != 0:
+                        legal.append(i)
+                move = random.choice(legal)
+                print("Chose card to reveal: " + str(move + 1))
+            else:
+                move = int(input("Chose card to reveal: ")) - 1
             if len(board[move]) == 0:
                 print("This player does not have unrevealed cards")
             else:
@@ -66,7 +84,7 @@ def show(player, rosesNum):
                     board[move].pop()
                 else:
                     print("It's a skull, you lose a card")
-                    rnd = randint(0, len(hand[player]) - 1)
+                    rnd = random.randint(0, len(hand[player]) - 1)
                     if hand[player][rnd] == 0:
                         print("You lose a rose")
                     else:
@@ -80,14 +98,14 @@ def show(player, rosesNum):
 def licitation(player):
     global highestBet
     global cardsNum
+    global movingPlayer
+    movingPlayer = player
     bets = []
     for i in range(0, players):
         bets.append(0)
     highestBet = 0
     bets[player] = makeBet(player)
-    while bets[player] < 1:
-        print("You started licitation, bet at least 1 rose")
-        bets[player] = makeBet(player)
+    movingPlayer = -1
     if highestBet == cardsNum:
         show(player, cardsNum)
         return
@@ -111,7 +129,23 @@ def licitation(player):
 def makeBet(player):
     global highestBet
     global cardsNum
-    bet = int(input("Declaration of player number " + str(player + 1) + ": "))
+    global movingPlayer
+    if player < playersAI:
+        legal = []
+        if player != movingPlayer:
+            legal.append(-1)
+        for i in range(highestBet + 1, cardsNum + 1):
+            legal.append(i)
+        bet = random.choice(legal)
+        print("Declaration of player number " + str(player + 1) + ": " + str(bet))
+    else:
+        bet = int(input("Declaration of player number " + str(player + 1) + ": "))
+    if player == movingPlayer:
+        if (bet < 0):
+            print("You started licitation, bet at least one rose")
+            return makeBet(player)
+        highestBet = bet
+        return bet
     if bet == -1:
         return -1
     elif bet <= highestBet:
@@ -126,7 +160,18 @@ def makeBet(player):
 
 def makeMove(player):
     global cardsNum
-    move = input("Move of player number " + str(player + 1) + ": ")
+    if (player < playersAI):
+        legal = []
+        if 0 in hand[player]:
+            legal.append("R")
+        if 1 in hand[player]:
+            legal.append("S")
+        if len(board[player]) != 0:
+            legal.append("L")
+        move = random.choice(legal)
+        print("Move of player number " + str(player + 1) + ": " + move)
+    else:
+        move = input("Move of player number " + str(player + 1) + ": ")
     if move == "R":
         if 0 in hand[player]:
             hand[player].remove(0)
