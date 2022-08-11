@@ -3,7 +3,7 @@ import random
 players = int(input("Number of players: "))
 
 while players < 2:
-    players = int(input("There has to be at least two players: "))
+    players = int(input("There has to be at least two players: \r"))
 
 playersAI = int(input("Number of AI players: "))
 
@@ -32,9 +32,19 @@ def returnCards(player):
     board[player] = []
 
 def displayBoard():
-    print("Number of cards")
     for i in range(0, players):
-        print("Player number " + str(i + 1) + " has " + str(len(board[i])))
+        print(str(i + 1), end = ' ')
+    print()
+    for i in range(0, players):
+        print(str(points[i]), end = ' ')
+    print()
+    for i in range(0, 3):
+        for j in range(0, players):
+            if len(board[j]) > i:
+                print("#", end = ' ')
+            else:
+                print(" ", end = ' ')
+        print()
 
 def show(player, rosesNum):
     global movingPlayer
@@ -93,7 +103,7 @@ def show(player, rosesNum):
                     return
         points[player] += 1
         print("Congratulations, you scored a point!")
-        print(points)          
+        #print(points)          
 
 def licitation(player):
     global highestBet
@@ -213,6 +223,8 @@ def newRound():
             a = (a + 1) % players
             continue
         makeMove(a)
+        if roundEnd == 0:
+            displayBoard()
         a = (a + 1) % players
 
 
