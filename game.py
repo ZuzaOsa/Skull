@@ -36,7 +36,10 @@ def displayBoard():
         print(str(i + 1), end = ' ')
     print()
     for i in range(0, players):
-        print(str(points[i]), end = ' ')
+        if points[i] == 0:
+            print(' ', end = ' ')
+        else:
+            print('x', end = ' ')
     print()
     for i in range(0, 3):
         for j in range(0, players):
@@ -49,7 +52,7 @@ def displayBoard():
 def show(player, rosesNum):
     global movingPlayer
     movingPlayer = player
-    print("Player number " + str(player + 1) + " show " + str(rosesNum) + " roses!")
+    print("Player number " + str(player + 1) + " won the licitation!")
     if 1 in board[player]:
         returnCards(player)
         if len(hand[player]) == 1:
@@ -59,9 +62,9 @@ def show(player, rosesNum):
         if (player < playersAI):
             legal = ["R", "S"]
             choice = random.choice(legal)
-            print("You have a skull, which card you want to lose? " + choice)
+            print("You have a skull on the table, which card you want to lose? " + choice)
         else: 
-            choice = input("You have a skull, which card you want to lose? ")
+            choice = input("You have a skull on the table, which card you want to lose? ")
         while choice != "S" and choice != "R":
             choice = input("You have to chose rose or skull: ")
         if choice == "S":
@@ -72,7 +75,10 @@ def show(player, rosesNum):
         rosesNum -= len(board[player])
         returnCards(player)
         if rosesNum > 0:
-            print("You need to reveal " + str(rosesNum) + " roses")
+            if rosesNum == 1:
+                print("You need to reveal 1 rose")
+            else:
+                print("You need to reveal " + str(rosesNum) + " roses")
             displayBoard()
         while rosesNum > 0:
             if player < playersAI:
@@ -241,4 +247,4 @@ while winner == -1:
     if active.count(1) == 1:
         winner = active.index(1)
 
-print("The winner is player number " + str(winner + 1))
+print("The winner is player number " + str(winner + 1) + "!")
