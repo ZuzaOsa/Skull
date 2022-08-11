@@ -27,6 +27,7 @@ for i in range(0, players):
 
 def returnCards(player):
     global board
+    global hand
     for i in board[player]:
         hand[player].append(i)
     board[player] = []
@@ -51,6 +52,7 @@ def displayBoard():
 
 def show(player, rosesNum):
     global movingPlayer
+    global hand
     movingPlayer = player
     print("Player number " + str(player + 1) + " won the licitation!")
     if 1 in board[player]:
@@ -127,7 +129,7 @@ def licitation(player):
         return
     for i in range(player + 1, players + player):
         if active[i % players] == 0:
-            bets.append(-1)
+            bets[i % players] == -1
             continue
         bets[i % players] = makeBet(i % players)
         if highestBet == cardsNum:
@@ -247,4 +249,4 @@ while winner == -1:
     if active.count(1) == 1:
         winner = active.index(1)
 
-print("The winner is player number " + str(winner + 1) + "!")
+print("The winner is player number " + str(winner + 1) + "! ")
