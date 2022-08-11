@@ -129,7 +129,7 @@ def licitation(player):
         return
     for i in range(player + 1, players + player):
         if active[i % players] == 0:
-            bets[i % players] == -1
+            bets[i % players] = -1
             continue
         bets[i % players] = makeBet(i % players)
         if highestBet == cardsNum:
