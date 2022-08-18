@@ -1,252 +1,324 @@
 import random
+from typing import List
 
-players = int(input("Number of players: "))
 
-while players < 2:
-    players = int(input("There has to be at least two players: \r"))
+class Player(object):
+    def __init__(self, id):
+        self.hand_roses = 3
+        self.hand_skulls = 1
+        self.id = id
+        self.cards_board = []
 
-playersAI = int(input("Number of AI players: "))
-
-while playersAI < 0 or playersAI > players:
-    playersAI = int(input("Number of AI players must be between 0 and " + str(players) + ": "))
-
-board = [] #cards on the table
-hand = []
-points = []
-active = [] #does player still have cards
-roundEnd = 0
-highestBet = 0
-movingPlayer = 0
-cardsNum = 0
-
-for i in range(0, players):
-    board.append([])
-    points.append(0)
-    hand.append([0, 0, 0, 1])
-    active.append(1)
-
-def returnCards(player):
-    global board
-    global hand
-    for i in board[player]:
-        hand[player].append(i)
-    board[player] = []
-
-def displayBoard():
-    for i in range(0, players):
-        print(str(i + 1), end = ' ')
-    print()
-    for i in range(0, players):
-        if points[i] == 0:
-            print(' ', end = ' ')
+    def put_card(self, move):
+        if move == "R":
+            self.hand_roses -= 1
+            self.cards_board.append(0)
         else:
-            print('x', end = ' ')
-    print()
-    for i in range(0, 3):
-        for j in range(0, players):
-            if len(board[j]) > i:
-                print("#", end = ' ')
-            else:
-                print(" ", end = ' ')
+            self.hand_skulls -= 1
+            self.cards_board.append(1)
+
+    def return_card(self):
+        if self.cards_board[-1]:
+            self.hand_skulls += 1
+        else:
+            self.hand_roses += 1
+        self.cards_board.pop()
+
+    def discard_card(self, card):
+        if card:
+            self.hand_skulls = 0
+        else:
+            self.hand_roses -= 1
+
+    def lose_card(self):
+        card = random.randint(0, self.hand_roses + self.hand_skulls - 1)
+        if card < self.hand_roses:
+            self.hand_roses -= 1
+            return 0
+        else:
+            self.hand_skulls = 0
+            return 1
+
+
+class Board(object):
+    def __init__(self, player_num):
+        self.player_num = player_num
+        self.cards_hand = [4] * player_num
+        self.cards_board = [0] * player_num
+        self.points = [0] * player_num
+        self.card_count = 0
+
+    def discard_card(self, player_id):
+        self.cards_hand[player_id] -= 1
+
+    def display(self):
+        print("BOARD")
+        for i in range(0, self.player_num):
+            print(str(i + 1), end=" ")
         print()
-
-def show(player, rosesNum):
-    global movingPlayer
-    global hand
-    movingPlayer = player
-    print("Player number " + str(player + 1) + " won the licitation!")
-    if 1 in board[player]:
-        returnCards(player)
-        if len(hand[player]) == 1:
-            print("You lose a skull")
-            hand[player].pop()
-            return
-        if (player < playersAI):
-            legal = ["R", "S"]
-            choice = random.choice(legal)
-            print("You have a skull on the table, which card you want to lose? " + choice)
-        else: 
-            choice = input("You have a skull on the table, which card you want to lose? ")
-        while choice != "S" and choice != "R":
-            choice = input("You have to chose rose or skull: ")
-        if choice == "S":
-            hand[player].remove(1)
-        else:
-            hand[player].remove(0)
-    else:
-        rosesNum -= len(board[player])
-        returnCards(player)
-        if rosesNum > 0:
-            if rosesNum == 1:
-                print("You need to reveal 1 rose")
+        for i in range(0, self.player_num):
+            if self.points[i]:
+                print("x", end=" ")
             else:
-                print("You need to reveal " + str(rosesNum) + " roses")
-            displayBoard()
-        while rosesNum > 0:
-            if player < playersAI:
-                legal = []
-                for i in range(0, players):
-                    if len(board[i]) != 0:
-                        legal.append(i)
-                move = random.choice(legal)
-                print("Chose card to reveal: " + str(move + 1))
-            else:
-                move = int(input("Chose card to reveal: ")) - 1
-            if len(board[move]) == 0:
-                print("This player does not have unrevealed cards")
-            else:
-                if board[move][-1] == 0:
-                    print("It's a rose")
-                    rosesNum -= 1
-                    hand[move].append(0)
-                    board[move].pop()
+                print(" ", end=" ")
+        print()
+        for i in range(0, 3):
+            for j in range(0, self.player_num):
+                if self.cards_board[j] > i:
+                    print("#", end=" ")
                 else:
-                    print("It's a skull, you lose a card")
-                    rnd = random.randint(0, len(hand[player]) - 1)
-                    if hand[player][rnd] == 0:
-                        print("You lose a rose")
-                    else:
-                        print("You lose a skull")
-                    hand[player].pop(rnd)
-                    return
-        points[player] += 1
-        print("Congratulations, you scored a point!")
-        #print(points)          
+                    print(" ", end=" ")
+            print()
 
-def licitation(player):
-    global highestBet
-    global cardsNum
-    global movingPlayer
-    movingPlayer = player
-    bets = []
-    for i in range(0, players):
-        bets.append(0)
-    highestBet = 0
-    bets[player] = makeBet(player)
-    movingPlayer = -1
-    if highestBet == cardsNum:
-        show(player, cardsNum)
-        return
-    for i in range(player + 1, players + player):
-        if active[i % players] == 0:
-            bets[i % players] = -1
-            continue
-        bets[i % players] = makeBet(i % players)
-        if highestBet == cardsNum:
-            show(i % players, cardsNum)
+    def put_card(self, player_id):
+        self.cards_hand[player_id] -= 1
+        self.cards_board[player_id] += 1
+        self.card_count += 1
+
+    def return_card(self, player_id):
+        self.cards_board[player_id] -= 1
+        self.cards_hand[player_id] += 1
+
+
+class Strategy(object):
+    def __init__(self, player_num):
+        self.player_num = player_num
+
+    def make_move():
+        pass
+
+    def licitate():
+        pass
+
+    def discard():
+        pass
+
+    def reveal():
+        pass
+
+    def legal_move(self, player: Player):
+        legal_moves = []
+        if player.hand_roses:
+            legal_moves.append("R")
+        if player.hand_skulls:
+            legal_moves.append("S")
+        if player.cards_board:
+            legal_moves.append("L")
+        return legal_moves
+
+    def legal_bet(self, board: Board, start, highest_bet):
+        legal_bets = []
+        for i in range(highest_bet + 1, board.card_count + 1):
+            legal_bets.append(i)
+        if not start:
+            legal_bets.append(-1)
+        return legal_bets
+
+    def legal_reveal(self, board: Board):
+        legal_reveals = []
+        for i in range(0, self.player_num):
+            if board.cards_board[i]:
+                legal_reveals.append(i)
+        return legal_reveals
+
+    def legal_discard(self, player: Player):
+        legal_discards = ["S"]
+        if player.hand_roses:
+            legal_discards.append("R")
+        return legal_discards
+
+
+class ManualStrategy(Strategy):
+    def make_move(self, board: Board, player: Player):
+        board.display()
+        legal_moves = self.legal_move(player)
+        move = input(f"Player number {player.id + 1} moves: ")
+        while move not in legal_moves:
+            move = input("This is not a legal move. New move: ")
+        return move
+
+    def licitate(self, player: Player, board: Board, start, highest_bet):
+        legal_bets = self.legal_bet(board, start, highest_bet)
+        move = int(input(f"Declaration of player number {player.id + 1}: "))
+        while move not in legal_bets:
+            move = int(input("This is not a legal bet. New bet: "))
+        return move
+
+    def discard(self, player: Player, board: Board):
+        legal_discards = self.legal_discard(player)
+        move = input(f"Player number {player.id + 1} discard a card: ")
+        while move not in legal_discards:
+            move = input("This is not a legal discard. New discard: ")
+        if move == "R":
+            return 0
+        else:
+            return 1
+
+    def reveal(self, player: Player, board: Board):
+        legal_reveals = self.legal_reveal(board)
+        print(legal_reveals)
+        move = int(input("Chose card to reveal: ")) + 1
+        while move not in legal_reveals:
+            move = int(input("This is not a legal reveal. New reveal: ")) - 1
+        return move
+
+
+class RandomStrategy(Strategy):
+    def make_move(self, board: Board, player: Player):
+        board.display()
+        legal_moves = self.legal_move(player)
+        move = random.choice(legal_moves)
+        print(f"Player number {player.id + 1} moves: {move}")
+        return move
+
+    def licitate(self, player: Player, board: Board, start, highest_bet):
+        legal_bets = self.legal_bet(board, start, highest_bet)
+        move = random.choice(legal_bets)
+        print(f"Declaration of player number {player.id + 1}: {move}")
+        return move
+
+    def discard(self, player: Player, board: Board):
+        legal_discards = self.legal_discard(player)
+        move = random.choice(legal_discards)
+        print(f"Player number {player.id + 1} discard a card: {move}")
+        if move == "R":
+            return 0
+        else:
+            return 1
+
+    def reveal(self, player: Player, board: Board):
+        legal_reveals = self.legal_reveal(board)
+        move = random.choice(legal_reveals)
+        print(f"Chose card to reveal: {move + 1}")
+        return move
+
+
+class Game(object):
+
+    def __init__(self, player_num, strategies: List[Strategy]):
+        self.player_num = player_num
+        self.strategies = strategies
+        self.board = Board(player_num)
+        self.winner = -1
+        self.players = []
+        self.starting_player = 0
+        self.active = [1] * player_num
+        for i in range(0, player_num):
+            self.players.append(Player(id=i))
+
+    def restart(self):
+        if 2 in self.board.points:
+            self.winner = self.board.points.index(2)
             return
-    while bets.count(-1) < players - 1:
-        if bets[player] != -1:
-            bets[player] = makeBet(player)
-            if highestBet == cardsNum:
-                show(player, cardsNum)
+        if self.active.count(1) == 1:
+            self.winner = self.active.index(1)
+            return
+        self.board.card_count = 0
+        for i in range(0, self.player_num):
+            while self.players[i].cards_board:
+                self.players[i].return_card()
+                self.board.return_card(i)
+
+    def show(self, player: Player, bet):
+        self.starting_player = player.id
+        print(f"Player number {player.id + 1} won the licitation, let's reveal your cards first")
+        while player.cards_board:
+            if player.cards_board[-1]:
+                print("You have a skull on board, discard a card")
+                self.restart()
+                move = self.strategies[player.id].discard(player, self.board)
+                self.board.discard_card(player.id)
+                self.players[player.id].discard_card(move)
+                if not self.board.cards_hand[player.id]:
+                    self.active[player.id] = 0
                 return
-        player = (player + 1) % players
-    show(bets.index(highestBet), highestBet)
+            else:
+                print("It's a rose")
+                self.players[player.id].return_card()
+                self.board.return_card(player.id)
+                bet -= 1
+        if bet <= 0:
+            print("Congratulations, you scored a point")
+            self.board.points[player.id] += 1
+            return
+        self.board.display()
+        while bet > 0:
+            move = self.strategies[player.id].reveal(player, self.board)
+            if self.players[move].cards_board[-1]:
+                self.restart()
+                print("It's a skull, you lose a card")
+                self.restart()
+                card = self.players[player.id].lose_card()
+                self.board.discard_card(player.id)
+                if not self.board.cards_hand[player.id]:
+                    self.active[player.id] = 0
+                if card:
+                    print("You lost a skull")
+                else:
+                    print("You lost a rose")
+                return
+            else:
+                print("It's a rose!")
+                bet -= 1
+                self.players[move].return_card()
+                self.board.return_card(move)
+        print("Congratulations, you scored a point")
+        self.board.points[player.id] += 1
 
-def makeBet(player):
-    global highestBet
-    global cardsNum
-    global movingPlayer
-    if player < playersAI:
-        legal = []
-        if player != movingPlayer:
-            legal.append(-1)
-        for i in range(highestBet + 1, cardsNum + 1):
-            legal.append(i)
-        bet = random.choice(legal)
-        print("Declaration of player number " + str(player + 1) + ": " + str(bet))
-    else:
-        bet = int(input("Declaration of player number " + str(player + 1) + ": "))
-    if player == movingPlayer:
-        if (bet < 0):
-            print("You started licitation, bet at least one rose")
-            return makeBet(player)
-        highestBet = bet
-        return bet
-    if bet == -1:
-        return -1
-    elif bet <= highestBet:
-        print("You need to say at least " + str(highestBet + 1) + " or pass")
-        return makeBet(player)
-    elif bet > cardsNum:
-        print("You can't licitate more roses than cards on the table")
-        return makeBet(player)
-    else:
-        highestBet = bet
-        return bet
+    def licitation(self, moving_player, board: Board):
+        bets = []
+        highestBet = 0
+        for i in range(0, self.player_num):
+            if self.active[i]:
+                bets.append(0)
+            else:
+                bets.append(-1)
+        bets[moving_player] = self.strategies[moving_player].licitate(self.players[moving_player], board, 1, highestBet)
+        highestBet = bets[moving_player]
+        moving_player = (moving_player + 1) % self.player_num
+        while bets.count(-1) < self.player_num - 1 and highestBet != self.board.card_count:
+            if bets[moving_player] == -1:
+                moving_player = (moving_player + 1) % self.player_num
+                continue
+            bets[moving_player] = self.strategies[moving_player].licitate(self.players[moving_player], board, 0, highestBet)
+            highestBet = max(highestBet, bets[moving_player])
+            moving_player = (moving_player + 1) % self.player_num
+        self.show(self.players[bets.index(highestBet)], highestBet)
 
-def makeMove(player):
-    global cardsNum
-    if (player < playersAI):
-        legal = []
-        if 0 in hand[player]:
-            legal.append("R")
-        if 1 in hand[player]:
-            legal.append("S")
-        if len(board[player]) != 0:
-            legal.append("L")
-        move = random.choice(legal)
-        print("Move of player number " + str(player + 1) + ": " + move)
-    else:
-        move = input("Move of player number " + str(player + 1) + ": ")
-    if move == "R":
-        if 0 in hand[player]:
-            hand[player].remove(0)
-            board[player].append(0)
-            cardsNum += 1
+    def make_turn(self, player_id):
+        if self.active[player_id] == 0:
+            return 1
+        move = self.strategies[player_id].make_move(self.board, self.players[player_id])
+        if move == "R" or move == "S":
+            self.board.put_card(player_id)
+            self.players[player_id].put_card(move)
+            return 1
         else:
-            print("You do not have a rose")
-            makeMove(player)
-    elif move == "S":
-        if 1 in hand[player]:
-            hand[player].remove(1)
-            board[player].append(1)
-            cardsNum += 1
-        else:
-            print("You do not have a skull")
-            makeMove(player)
-    elif move == "L":
-        if len(board[player]) == 0:
-            print("Put a card first")
-            makeMove(player)
-        else:
-            global roundEnd
-            roundEnd = 1
-            licitation(player)
-    else:
-        print("This is not a valid move")
-        makeMove(player)
+            self.licitation(player_id, self.board)
+            return 0
+
+    def round(self):
+        moving_player = self.starting_player
+        while self.make_turn(moving_player):
+            moving_player = (moving_player + 1) % self.player_num
+        self.restart()
 
 
-def newRound():
-    print("New round starts")
-    global roundEnd
-    global cardsNum
-    roundEnd = 0
-    cardsNum = 0
-    a = movingPlayer
-    while roundEnd == 0:
-        if active[a] == 0:
-            a = (a + 1) % players
-            continue
-        makeMove(a)
-        if roundEnd == 0:
-            displayBoard()
-        a = (a + 1) % players
+all_players = int(input("Number of players: "))
 
+while all_players < 2:
+    all_players = int(input("There has to be at least two players: "))
 
-winner = -1
+ai_players = int(input("Number of AI players: "))
 
-while winner == -1:
-    newRound()
-    for i in range(0, players):
-        returnCards(i)
-        if len(hand[i]) == 0:
-            active[i] = 0
-    if 2 in points:
-        winner = points.index(2)
-    if active.count(1) == 1:
-        winner = active.index(1)
+while ai_players < 0 or ai_players > all_players:
+    ai_players = int(input(f"Number of AI players must be between 0 and {all_players}: "))
 
-print("The winner is player number " + str(winner + 1) + "! ")
+strategy = [ManualStrategy(player_num=all_players)] * (all_players - ai_players) + [RandomStrategy(player_num=all_players)] * ai_players
+
+game = Game(all_players, strategy)
+
+while game.winner == -1:
+    game.round()
+
+print(f"The winner is player number {game.winner + 1}")
