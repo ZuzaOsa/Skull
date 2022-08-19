@@ -81,8 +81,9 @@ class Board(object):
 
 
 class Strategy(object):
-    def __init__(self, player_num):
+    def __init__(self, player_num, visible_moves):
         self.player_num = player_num
+        self.visible_moves = visible_moves
 
     def make_move():
         pass
@@ -168,7 +169,8 @@ class RandomStrategy(Strategy):
         board.display()
         legal_moves = self.legal_move(player)
         move = random.choice(legal_moves)
-        print(f"Player number {player.id + 1} moves: {move}")
+        if self.visible_moves:
+            print(f"Player number {player.id + 1} moves: {move}")
         return move
 
     def licitate(self, player: Player, board: Board, start, highest_bet):
@@ -180,7 +182,8 @@ class RandomStrategy(Strategy):
     def discard(self, player: Player, board: Board):
         legal_discards = self.legal_discard(player)
         move = random.choice(legal_discards)
-        print(f"Player number {player.id + 1} discard a card: {move}")
+        if self.visible_moves:
+            print(f"Player number {player.id + 1} discard a card: {move}")
         if move == "R":
             return 0
         else:
@@ -314,7 +317,9 @@ ai_players = int(input("Number of AI players: "))
 while ai_players < 0 or ai_players > all_players:
     ai_players = int(input(f"Number of AI players must be between 0 and {all_players}: "))
 
-strategy = [ManualStrategy(player_num=all_players)] * (all_players - ai_players) + [RandomStrategy(player_num=all_players)] * ai_players
+visible = int(input("Do you want to see AI moves?: "))
+
+strategy = [ManualStrategy(player_num=all_players, visible_moves=visible)] * (all_players - ai_players) + [RandomStrategy(player_num=all_players, visible_moves=visible)] * ai_players
 
 game = Game(all_players, strategy)
 
