@@ -26,12 +26,12 @@ class TestPlayer(unittest.TestCase):
         self.assertTrue(isinstance(self.player.points, int))
         self.assertTrue(isinstance(self.player.strategy, Strategy))
         self.assertTrue(isinstance(self.player.strategy, RandomStrategy))
-        self.assertTrue(isinstance(self.player.stack, LifoQueue))
+        self.assertTrue(isinstance(self.player.stack, list))
         self.assertTrue(isinstance(self.player.hand, Counter))
 
         self.assertEqual(self.player.idx, 0)
         self.assertEqual(self.player.points, 0)
-        self.assertTrue(self.player.stack.empty())
+        self.assertEqual(len(self.player.stack), 0)
         self.assertEqual(self.player.hand[Card.Rose], 3)
         self.assertEqual(self.player.hand[Card.Skull], 1)
 
@@ -41,13 +41,11 @@ class TestPlayer(unittest.TestCase):
     def test_restart(self):
         self.player.hand = Counter({Card.Rose: 0,
                                     Card.Skull: 0})
-        self.player.stack.put(Card.Rose)
-        self.player.stack.put(Card.Rose)
-        self.player.stack.put(Card.Skull)
+        self.player.stack = [Card.Rose, Card.Rose, Card.Skull]
         self.player.restart()
         self.assertEqual(self.player.hand[Card.Rose], 2)
         self.assertEqual(self.player.hand[Card.Skull], 1)
-        self.assertTrue(self.player.stack.empty())
+        self.assertEqual(len(self.player.stack), 0)
 
     def test_active(self):
         self.assertTrue(self.player.active)
@@ -56,7 +54,7 @@ class TestPlayer(unittest.TestCase):
                                     Card.Skull: 0})
         self.assertFalse(self.player.active)
 
-        self.player.stack.put(Card.Rose)
+        self.player.stack.append(Card.Rose)
         self.assertTrue(self.player.active)
 
 

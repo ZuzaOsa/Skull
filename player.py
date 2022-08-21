@@ -15,7 +15,7 @@ class Player:
         self.idx = idx
         self.points = 0
         self.strategy = strategy
-        self.stack = LifoQueue()  # Cards on the board
+        self.stack = []  # Cards on the board
         self.hand = Counter({Card.Rose: 3,
                              Card.Skull: 1})
 
@@ -24,16 +24,16 @@ class Player:
 
     def restart(self) -> None:
         # Put all the cards from the board into hand
-        while not self.stack.empty():
-            card = self.stack.get()
+        for card in self.stack:
             self.hand[card] += 1
+        self.stack = []
 
     @property
     def active(self):
         """ Player is considered active if there is at least one card in hand
             or board
         """
-        return not self.stack.empty() or sum(self.hand.values()) > 0
+        return len(self.stack) + sum(self.hand.values()) > 0
 
     # TODO rest of the methods
     ...
