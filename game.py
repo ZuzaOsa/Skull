@@ -1,10 +1,12 @@
-from typing import List
+from typing import Counter, List
 
 from strategy import Strategy
 from player import Player
 from board import Board
 
 from utils import Phase
+from utils import Move
+from utils import Card
 from utils import POINTS_TO_WIN
 
 
@@ -18,6 +20,7 @@ class Game:
         self.verbose = verbose  # Show all the moves of all the players
         self.winner = None
         self.phase = None
+        self.bets = [Move.Bet_0] * self.player_num
 
     def round(self) -> None:
         # Putting cards phase
@@ -42,6 +45,7 @@ class Game:
         self.check_winner()
         for player in self.players:
             player.restart()
+        self.bets = [Move.Bet_0] * self.player_num
 
     def check_winner(self) -> None:
         # Checks if game has finished. If game has finished, sets self.winner
@@ -59,7 +63,7 @@ class Game:
         next_player = self.players[next_player_idx]
         return next_player
 
-    def get_board(self, player=None) -> Board:
+    def get_board(self, player: Player=None) -> Board:
         """ Get current game state from the perspective of a given player i.e.
             the game state include information only known to the given player
             such as which cards the player has in the hand and/or board.
@@ -67,8 +71,22 @@ class Game:
             If player is None then the board include information only known
             to all the players.
         """
-        # TODO
-        raise NotImplementedError
+        if player:
+            idx = player.idx
+        else:
+            idx = -1
+        player_stacks = []
+        player_hands = []
+        for i in self.players:
+            if i.idx == idx:
+                player_stacks.append(i.stack)
+                player_hands.append(i.hand)
+            else:
+                cards_board = len(i.stack)
+                cards_hand = i.hand.total()
+                player_stacks.append([Card.Unknown] * cards_board)
+                player_hands.append(Counter({Card.Unknown: cards_hand}))
+        return Board(self.phase, self.points, self.active_player_mask, self.bets, player_stacks, player_hands, idx)
 
     @property
     def points(self):

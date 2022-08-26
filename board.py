@@ -5,6 +5,7 @@ from typing import TypeVar
 from utils import Phase
 from utils import Card
 from utils import Move
+from utils import Bet_i
 
 Queue = TypeVar("Queue")
 
@@ -109,3 +110,19 @@ class Board:
         out += '\n'
 
         return out
+
+    @property
+    def cards_board_num(self):
+        cards = 0
+        for i in self.player_stacks:
+            cards += len(i)
+        return cards
+
+    @property
+    def highest_bet(self):
+        bet = 0
+        for i in self.bets:
+            if i == Move.Pass:
+                continue
+            bet = max(bet, Bet_i.index(i))
+        return

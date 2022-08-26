@@ -72,3 +72,15 @@ class Move(Enum):
 
     def __str__(self):
         return str(self.value)
+
+
+Bet_i = [
+    Move.Bet_0, Move.Bet_1, Move.Bet_2, Move.Bet_3, Move.Bet_4, Move.Bet_5,
+    Move.Bet_6, Move.Bet_7, Move.Bet_8, Move.Bet_9, Move.Bet_10, Move.Bet_11,
+    Move.Bet_12, Move.Bet_13, Move.Bet_14, Move.Bet_15, Move.Bet_16,
+    Move.Bet_17, Move.Bet_18, Move.Bet_19, Move.Bet_20, Move.Bet_21,
+    Move.Bet_22, Move.Bet_23, Move.Bet_24, Move.Pass]
+
+Reveal_i = [
+    Move.Reveal_0, Move.Reveal_1, Move.Reveal_2, Move.Reveal_3, Move.Reveal_4,
+    Move.Reveal_5]
