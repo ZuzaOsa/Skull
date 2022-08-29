@@ -2,7 +2,7 @@ from pydoc import plain
 import random
 
 from abc import abstractmethod
-from typing import Set
+from typing import List
 
 from board import Board
 from utils import Move
@@ -18,31 +18,29 @@ class Strategy:
         raise NotImplementedError
 
     @staticmethod
-    def get_legal_moves(board: Board) -> Set[Move]:
-        legal_moves = set()
+    def get_legal_moves(board: Board) -> List[Move]:
+        legal_moves = []
         if board.phase == Phase.Put_Cards:
-            if Card.Rose in board.player_hands[board.player_idx]:
-                legal_moves.add(Move.Put_Rose)
-            if Card.Skull in board.player_hands[board.player_idx]:
-                legal_moves.add(Move.Put_Skull)
+            if board.player_hands[board.player_idx][Card.Rose]:
+                legal_moves.append(Move.Put_Rose)
+            if board.player_hands[board.player_idx][Card.Skull]:
+                legal_moves.append(Move.Put_Skull)
             if board.player_stacks[board.player_idx]:
-                legal_moves.add(Move.Bet)
+                legal_moves.append(Move.Bet)
         if board.phase == Phase.Bet:
             assert len(board.bets) == board.player_num
             if board.highest_bet > 0:
-                legal_moves.add(Move.Pass)
+                legal_moves.append(Move.Pass)
             for i in range(board.highest_bet + 1, board.cards_board_num + 1):
-                legal_moves.add(Bet_i[i])
+                legal_moves.append(Bet_i[i])
         if board.phase == Phase.Reveal:
-            assert len(board.player_stacks[board.player_idx]) == 0
             for i in range(0, board.player_num):
-                if board.player_stacks[i]:
-                    legal_moves.add(Reveal_i[i])
+                if Card.Unknown in board.player_stacks[i]:
+                    legal_moves.append(Reveal_i[i])
         if board.phase == Phase.Discard:
-            assert len(board.player_stacks[board.player_idx]) == 0
-            legal_moves.add(Move.Discard_Skull)
+            legal_moves.append(Move.Discard_Skull)
             if board.player_hands[board.player_idx].total() > 1:
-                legal_moves.add(Move.Discard_Rose)
+                legal_moves.append(Move.Discard_Rose)
         return legal_moves
 
 
@@ -66,4 +64,6 @@ class RandomStrategy(Strategy):
     def get_move(self, board: Board) -> Move:
         legal_moves = self.get_legal_moves(board)
         move = random.choice(legal_moves)
+        print(board)
+        print(f"------\nMOVE: {move}\n------\n\n\n")
         return move

@@ -7,6 +7,7 @@ from board import Board
 from utils import Phase
 from utils import Move
 from utils import Card
+from utils import Reveal_i
 from utils import POINTS_TO_WIN
 
 
@@ -21,31 +22,78 @@ class Game:
         self.winner = None
         self.phase = None
         self.bets = [Move.Bet_0] * self.player_num
+        self.revealed = [0] * self.player_num
 
     def round(self) -> None:
         # Putting cards phase
         self.phase = Phase.Put_Cards
-        # TODO
+        moving_player = self.starting_player
+        while self.phase == Phase.Put_Cards:
+            if moving_player.active:
+                move = moving_player.strategy.get_move(self.get_board(moving_player))
+                if move == Move.Bet:
+                    self.phase = Phase.Bet
+                else:
+                    moving_player.put_card(move)
+                    moving_player = self.next_player(moving_player)
+            else:
+                moving_player = self.next_player(moving_player)
 
         # Betting phase
-        self.phase = Phase.Bet
-        # TODO
+        while self.phase == Phase.Bet:
+            if self.bets[moving_player.idx] != Move.Pass:
+                self.bets[moving_player.idx] = moving_player.strategy.get_move(self.get_board(moving_player))
+            if self.end_licitation:
+                self.phase = Phase.Reveal
+            else:
+                moving_player = self.next_player(moving_player)
 
         # Reveal phase
-        self.phase = Phase.Reveal
-        # TODO
+        declaration = self.get_board().highest_bet
+        while self.phase == Phase.Reveal:
+            if self.revealed[moving_player.idx] < len(moving_player.stack):
+                card = moving_player.stack[-self.revealed[moving_player.idx]-1]
+                if card == Card.Skull:
+                    self.phase = Phase.Discard
+                else:
+                    self.revealed[moving_player.idx] += 1
+                    declaration -= 1
+            else:
+                if declaration <= 0:
+                    moving_player.add_point()
+                    self.phase = Phase.Put_Cards
+                else:
+                    move = Reveal_i.index(moving_player.strategy.get_move(self.get_board(moving_player)))
+                    card = self.players[move].stack[-self.revealed[move]-1]
+                    if card == Card.Skull:
+                        moving_player.restart()
+                        moving_player.lose_card()
+                        self.phase = Phase.Put_Cards
+                    else:
+                        self.revealed[move] += 1
+                        declaration -= 1
 
         # Optional discard phase
-        self.phase = Phase.Discard
-        # TODO
-
+        if self.phase == Phase.Discard:
+            moving_player.restart()
+            self.revealed = [0] * self.player_num
+            move = moving_player.strategy.get_move(self.get_board(moving_player))
+            if move == Move.Discard_Rose:
+                moving_player.discard(Card.Rose)
+            else:
+                moving_player.discard(Card.Skull)
+        self.starting_player = moving_player
         self.restart()
 
     def restart(self) -> None:
         self.check_winner()
         for player in self.players:
             player.restart()
-        self.bets = [Move.Bet_0] * self.player_num
+            if player.active:
+                self.bets[player.idx] = Move.Bet_0
+            else:
+                self.bets[player.idx] = Move.Pass
+        self.revealed = [0] * self.player_num
 
     def check_winner(self) -> None:
         # Checks if game has finished. If game has finished, sets self.winner
@@ -55,7 +103,7 @@ class Game:
 
         if self.active_player_mask.count(1) == 1:
             self.winner_idx = self.active_player_mask.index(1)
-            self.winner = self.players[winner_idx]
+            self.winner = self.players[self.winner_idx]
 
     def next_player(self, player: Player) -> Player:
         # Helper function, returns the next player to play
@@ -71,7 +119,7 @@ class Game:
             If player is None then the board include information only known
             to all the players.
         """
-        if player:
+        if player is not None:
             idx = player.idx
         else:
             idx = -1
@@ -79,13 +127,17 @@ class Game:
         player_hands = []
         for i in self.players:
             if i.idx == idx:
-                player_stacks.append(i.stack)
-                player_hands.append(i.hand)
+                player_hands.append(Counter({Card.Rose: i.hand[Card.Rose], Card.Skull: i.hand[Card.Skull]}))
+                player_stacks.append([])
+                for card in i.stack:
+                    player_stacks[i.idx].append(card)
             else:
                 cards_board = len(i.stack)
                 cards_hand = i.hand.total()
                 player_stacks.append([Card.Unknown] * cards_board)
                 player_hands.append(Counter({Card.Unknown: cards_hand}))
+            for j in range(1, self.revealed[i.idx] + 1):
+                player_stacks[i.idx][-j] = i.stack[-j]
         return Board(self.phase, self.points, self.active_player_mask, self.bets, player_stacks, player_hands, idx)
 
     @property
@@ -99,3 +151,10 @@ class Game:
     @property
     def finished(self):
         return self.winner is not None
+
+    @property
+    def end_licitation(self):
+        if self.bets.count(Move.Pass) == self.player_num - 1:
+            return True
+        board = self.get_board()
+        return board.highest_bet == board.cards_board_num

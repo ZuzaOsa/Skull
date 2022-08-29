@@ -125,4 +125,4 @@ class Board:
             if i == Move.Pass:
                 continue
             bet = max(bet, Bet_i.index(i))
-        return
+        return bet
