@@ -46,17 +46,43 @@ class Strategy:
 
 class ManualStrategy(Strategy):
     @staticmethod
-    def get_move_from_input() -> Move:
-        # TODO
-        raise NotImplementedError
+    def get_move_from_input(phase: Phase, player_idx) -> Move:
+        move = input(f"Player number {player_idx + 1} moves: ")
+        if phase == Phase.Put_Cards:
+            if move == "R":
+                return Move.Put_Rose
+            if move == "S":
+                return Move.Put_Skull
+            if move == "B":
+                return Move.Bet
+        if phase == Phase.Bet:
+            if move == "P":
+                return Move.Pass
+            if move.isnumeric():
+                move = int(move)
+                if move > 0 and move < 25:
+                    return Bet_i[move]
+        if phase == Phase.Reveal:
+            if move.isnumeric():
+                move = int(move) - 1
+                if move >= 0 and move < 6:
+                    return Reveal_i[move]
+        if phase == Phase.Discard:
+            if move == "DR":
+                return Move.Discard_Rose
+            if move == "DS":
+                return Move.Discard_Skull
+        print("This is not a valid move")
+        return None
 
     def get_move(self, board: Board) -> Move:
-        print(board)
         legal_moves = self.get_legal_moves(board)
-        move = self.get_move_from_input()
+        print(board)
+        move = self.get_move_from_input(board.phase, board.player_idx)
         while move not in legal_moves:
-            print(f"{move} is not a legal move")
-            move = self.get_move_from_input()
+            if move is not None:
+                print(f"{move} is not a legal move")
+            move = self.get_move_from_input(board.phase, board.player_idx)
         return move
 
 
@@ -64,6 +90,4 @@ class RandomStrategy(Strategy):
     def get_move(self, board: Board) -> Move:
         legal_moves = self.get_legal_moves(board)
         move = random.choice(legal_moves)
-        print(board)
-        print(f"------\nMOVE: {move}\n------\n\n\n")
         return move

@@ -29,8 +29,11 @@ class Game:
         self.phase = Phase.Put_Cards
         moving_player = self.starting_player
         while self.phase == Phase.Put_Cards:
+            self.print_board()
             if moving_player.active:
                 move = moving_player.strategy.get_move(self.get_board(moving_player))
+                if self.verbose:
+                    print(f"------\nMOVE: {move}\n------\n")
                 if move == Move.Bet:
                     self.phase = Phase.Bet
                 else:
@@ -41,8 +44,12 @@ class Game:
 
         # Betting phase
         while self.phase == Phase.Bet:
+            self.print_board()
             if self.bets[moving_player.idx] != Move.Pass:
-                self.bets[moving_player.idx] = moving_player.strategy.get_move(self.get_board(moving_player))
+                move = moving_player.strategy.get_move(self.get_board(moving_player))
+                if self.verbose:
+                    print(f"------\nMOVE: {move}\n------\n")
+                self.bets[moving_player.idx] = move
             if self.end_licitation:
                 self.phase = Phase.Reveal
             else:
@@ -51,6 +58,7 @@ class Game:
         # Reveal phase
         declaration = self.get_board().highest_bet
         while self.phase == Phase.Reveal:
+            self.print_board()
             if self.revealed[moving_player.idx] < len(moving_player.stack):
                 card = moving_player.stack[-self.revealed[moving_player.idx]-1]
                 if card == Card.Skull:
@@ -64,6 +72,8 @@ class Game:
                     self.phase = Phase.Put_Cards
                 else:
                     move = Reveal_i.index(moving_player.strategy.get_move(self.get_board(moving_player)))
+                    if self.verbose:
+                        print(f"------\nMOVE: {move}\n------\n")
                     card = self.players[move].stack[-self.revealed[move]-1]
                     if card == Card.Skull:
                         moving_player.restart()
@@ -75,9 +85,12 @@ class Game:
 
         # Optional discard phase
         if self.phase == Phase.Discard:
+            self.print_board()
             moving_player.restart()
             self.revealed = [0] * self.player_num
             move = moving_player.strategy.get_move(self.get_board(moving_player))
+            if self.verbose:
+                print(f"------\nMOVE: {move}\n------\n")
             if move == Move.Discard_Rose:
                 moving_player.discard(Card.Rose)
             else:
@@ -139,6 +152,9 @@ class Game:
             for j in range(1, self.revealed[i.idx] + 1):
                 player_stacks[i.idx][-j] = i.stack[-j]
         return Board(self.phase, self.points, self.active_player_mask, self.bets, player_stacks, player_hands, idx)
+
+    def print_board(self):
+        print(self.get_board())
 
     @property
     def points(self):

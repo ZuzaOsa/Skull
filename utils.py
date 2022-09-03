@@ -1,4 +1,5 @@
 from enum import Enum
+from enum import unique
 
 MAX_PLAYERS = 6
 POINTS_TO_WIN = 2
@@ -24,6 +25,7 @@ class Card(Enum):
 
 
 # TOOD this looks ugly, find a better way to define multiple enum values
+@unique
 class Move(Enum):
     # Moves during Put_Cards phase
     Put_Rose = 'R'
@@ -31,16 +33,16 @@ class Move(Enum):
     Bet = 'B'
 
     # Moves during Discard phase
-    Discard_Rose = 'R'
-    Discard_Skull = 'S'
+    Discard_Rose = 'DR'
+    Discard_Skull = 'DS'
 
     # Moves during Reveal phase
-    Reveal_0 = 0
-    Reveal_1 = 1
-    Reveal_2 = 2
-    Reveal_3 = 3
-    Reveal_4 = 4
-    Reveal_5 = 5
+    Reveal_0 = '0'
+    Reveal_1 = '1'
+    Reveal_2 = '2'
+    Reveal_3 = '3'
+    Reveal_4 = '4'
+    Reveal_5 = '5'
 
     # Moves during Bet phase
     Pass = 'P'
